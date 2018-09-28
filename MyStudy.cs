@@ -18,9 +18,17 @@ namespace ChainOfResponsibility1
 
     public abstract class PaymentHandler
     {
-        public PaymentHandler succesor;
+        public PaymentHandler successor;
 
-        public abstract void Handle(Receiver receiver);
+        public void SetSuccessor(PaymentHandler successor)
+        {
+            this.successor = successor;
+        }
+
+        public virtual void Handle(Receiver receiver)
+        {
+            successor?.Handle(receiver);
+        }
     }
 
     public class BankPaymentHandler : PaymentHandler
@@ -31,9 +39,9 @@ namespace ChainOfResponsibility1
             {
                 Console.WriteLine("bankPayment ok");
             }
-            else if (succesor != null)
+            else
             {
-                succesor.Handle(receiver);
+                base.Handle(receiver);
             }
         }
     }
@@ -48,7 +56,7 @@ namespace ChainOfResponsibility1
             }
             else
             {
-                succesor?.Handle(receiver);
+                base.Handle(receiver);
             }
         }
     }
@@ -63,7 +71,7 @@ namespace ChainOfResponsibility1
             }
             else
             {
-                succesor?.Handle(receiver);
+                successor?.Handle(receiver);
             }
         }
     }
@@ -80,16 +88,16 @@ namespace ChainOfResponsibility1
     {
         static void Main(string[] args)
         {
-            Receiver receiver = new Receiver(false, false, false);
+            Receiver receiver = new Receiver(false, true, false);
 
             PaymentHandler bankPayment = new BankPaymentHandler();
             PaymentHandler cashPayment = new CashPaymentHandler();
             PaymentHandler payPalPayment = new PayPalPaymentHandler();
             PaymentHandler noPayment = new NoPaymentHandler();
 
-            payPalPayment.succesor = bankPayment;
-            bankPayment.succesor = cashPayment;
-            cashPayment.succesor = noPayment;
+            payPalPayment.successor = bankPayment;
+            bankPayment.successor = cashPayment;
+            cashPayment.successor = noPayment;
 
             payPalPayment.Handle(receiver);
         }
