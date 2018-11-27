@@ -6,11 +6,18 @@ namespace Recall
     {
         public bool bankPayment;
         public bool paypalPayment;
+        private int _moneyTotal;
 
         public Receiver(bool bankPayment, bool paypalPayment)
         {
             this.bankPayment = bankPayment;
             this.paypalPayment = paypalPayment;
+        }
+
+        public void GetMoney(int count)
+        {
+            _moneyTotal += count;
+            Console.WriteLine(_moneyTotal);
         }
     }
 
@@ -23,38 +30,40 @@ namespace Recall
             this.successor = successor;
         }
 
-        public virtual void Handle(Receiver receiver)
+        public virtual void Handle(Receiver receiver, int money)
         {
-            successor?.Handle(receiver);
+            successor?.Handle(receiver, money);
         }
     }
 
     public class BankPaymentHandler : PaymentHandler
     {
-        public override void Handle(Receiver receiver)
+        public override void Handle(Receiver receiver, int money)
         {
             if (receiver.bankPayment)
             {
                 Console.WriteLine("BankPayment ok");
+                receiver.GetMoney(money);
             }
             else
             {
-                base.Handle(receiver); // successor?.Handle(receiver);
+                base.Handle(receiver, money); // successor?.Handle(receiver);
             }
         }
     }
 
     public class PayPalPaymentHandler : PaymentHandler
     {
-        public override void Handle(Receiver receiver)
+        public override void Handle(Receiver receiver, int money)
         {
             if (receiver.paypalPayment)
             {
                 Console.WriteLine("PayPalPayment ok");
+                receiver.GetMoney(money);
             }
             else
             {
-                successor?.Handle(receiver);
+                successor?.Handle(receiver, money);
             }
         }
     }
@@ -63,13 +72,13 @@ namespace Recall
     {
         static void Main(string[] args)
         {
-            Receiver receiver = new Receiver(true, false);
+            Receiver receiver = new Receiver(false, true);
 
             PaymentHandler bankP = new BankPaymentHandler();
             PaymentHandler paypP = new PayPalPaymentHandler();
 
             bankP.SetSuccessor(paypP);
-            bankP.Handle(receiver);
+            bankP.Handle(receiver, 500);
         }
     }
 }
